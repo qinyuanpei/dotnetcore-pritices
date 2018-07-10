@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace hello_webapi.Controllers
+namespace hello_ocelot.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
