@@ -14,7 +14,7 @@ namespace hello_webapi_2.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
-            return new string[] { "value1", "value2" };
+            return new string[] { "Service2","value1", "value2" };
         }
 
         // GET api/values/5

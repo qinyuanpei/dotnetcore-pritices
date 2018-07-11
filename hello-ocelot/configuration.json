@@ -1,0 +1,47 @@
+{
+    "ReRoutes": [
+        {
+            "DownstreamPathTemplate": "/api/values1",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 8002
+                }
+            ],
+            "UpstreamPathTemplate": "/values1",
+            "UpstreamHttpMethod": [ "Get"]
+        },
+        {
+            "DownstreamPathTemplate": "/api/student",
+            "DownstreamScheme": "http",
+            "DownstreamHost": "localhost",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 8002
+                }
+            ],
+            "UpstreamPathTemplate": "/student",
+            "UpstreamHttpMethod": [ "Get"]
+        },
+        {
+            "DownstreamPathTemplate": "/api/values2",
+            "DownstreamScheme": "http",
+            "DownstreamHost": "localhost",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 8003
+                }
+            ],
+            "UpstreamPathTemplate": "/values2",
+            "UpstreamHttpMethod": [ "Get"]
+        }
+
+    ],
+    "GlobalConfiguration": {
+        "RequestIdKey": "OcRequestId",
+        "AdministrationPath": "/administration"
+    }
+}

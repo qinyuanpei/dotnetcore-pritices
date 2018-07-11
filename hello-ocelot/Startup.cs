@@ -19,9 +19,10 @@ namespace hello_ocelot
     {
         public Startup(IHostingEnvironment env)
         {
-            var builder = new Microsoft.Extensions.Configuration.ConfigurationBuilder();
-            builder.SetBasePath(env.ContentRootPath)
-                   .AddJsonFile("ocelot.json")
+             var builder = new Microsoft.Extensions.Configuration.ConfigurationBuilder();
+            builder.SetBasePath(env.ContentRootPath)    
+                   //add configuration.json
+                   .AddJsonFile("configuration.json", optional: false, reloadOnChange: true)
                    .AddEnvironmentVariables();
 
             Configuration = builder.Build();
@@ -32,12 +33,11 @@ namespace hello_ocelot
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddOcelot();
+            services.AddOcelot(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public async void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -50,7 +50,7 @@ namespace hello_ocelot
 
             app.UseHttpsRedirection();
             app.UseMvc();
-            app.UseOcelot().Wait();
+            await app.UseOcelot();
         }
     }
 }
