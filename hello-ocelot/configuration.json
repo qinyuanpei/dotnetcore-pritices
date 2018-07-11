@@ -3,14 +3,13 @@
         {
             "DownstreamPathTemplate": "/api/values1",
             "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 8002
-                }
-            ],
             "UpstreamPathTemplate": "/values1",
-            "UpstreamHttpMethod": [ "Get"]
+            "UpstreamHttpMethod": [ "Get"],
+            "ServiceName": "values1",
+            "LoadBalancerOptions": {
+                "Type": "LeastConnection"
+            },
+            "UseServiceDiscovery": true
         },
         {
             "DownstreamPathTemplate": "/api/student",
@@ -43,5 +42,10 @@
     "GlobalConfiguration": {
         "RequestIdKey": "OcRequestId",
         "AdministrationPath": "/administration"
+    },
+    "ServiceDiscoveryProvider": {
+        "Host": "localhost",
+        "Port": 8500,
+        "Type": "Consul"
     }
 }

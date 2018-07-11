@@ -23,7 +23,7 @@ namespace hello_ocelot
             builder.UseKestrel()
                    .UseContentRoot(Directory.GetCurrentDirectory())
                    .UseStartup<Startup>()
-                   .UseUrls("http://localhost:9000");
+                   .UseUrls("http://localhost:8000");
 
             var host = builder.Build();
             host.Run();
