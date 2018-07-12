@@ -3,13 +3,26 @@
         {
             "DownstreamPathTemplate": "/api/values1",
             "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 8002
+                }
+            ],
             "UpstreamPathTemplate": "/values1",
-            "UpstreamHttpMethod": [ "Get"],
-            "ServiceName": "values1",
-            "LoadBalancerOptions": {
-                "Type": "LeastConnection"
-            },
-            "UseServiceDiscovery": true
+            "UpstreamHttpMethod": [ "Get"]
+        },
+        {
+            "DownstreamPathTemplate": "/api/values1/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 8002
+                }
+            ],
+            "UpstreamPathTemplate": "/values1/{id}",
+            "UpstreamHttpMethod": [ "Get"]
         },
         {
             "DownstreamPathTemplate": "/api/student",
@@ -22,7 +35,7 @@
                 }
             ],
             "UpstreamPathTemplate": "/student",
-            "UpstreamHttpMethod": [ "Get"]
+            "UpstreamHttpMethod": [ "Get","Post"]
         },
         {
             "DownstreamPathTemplate": "/api/values2",

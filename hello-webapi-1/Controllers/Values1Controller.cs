@@ -21,7 +21,7 @@ namespace hello_webapi.Controllers
         [HttpGet("{id}")]
         public ActionResult<string> Get(int id)
         {
-            return "value";
+            return "value" + id.ToString();
         }
 
         // POST api/values
