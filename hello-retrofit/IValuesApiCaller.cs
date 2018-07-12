@@ -12,10 +12,12 @@ namespace hello_retrofit
     {
         //GET http://localhost:8000/values1
         [HttpGet("/values1")]
+        [OAuth2Filter]
         ITask<string> GetValues();
         
         //GET http://localhost:8000/values1/{id}
         [HttpGet("/values1/{id}")]
+        [OAuth2Filter]
         ITask<string> GetValue(int id);
     }
 }

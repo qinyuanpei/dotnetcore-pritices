@@ -14,12 +14,14 @@ namespace hello_retrofit
     {
         //GET http://localhost:8000/student
         [HttpGet("/student")]
+        [OAuth2Filter]
         [JsonReturn]
         ITask<List<Student>> GetAllStudents();
         
         
         //POST http://localhost:8000/student
         [HttpPost("/student")]
+        [OAuth2Filter]
         ITask<string> NewStudent([JsonContent] Student student);
     }
 }
