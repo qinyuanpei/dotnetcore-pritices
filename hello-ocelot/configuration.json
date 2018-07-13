@@ -25,6 +25,30 @@
             "UpstreamHttpMethod": [ "Get"]
         },
         {
+            "DownstreamPathTemplate": "/api/files/upload",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 8002
+                }
+            ],
+            "UpstreamPathTemplate": "/files/upload",
+            "UpstreamHttpMethod": [ "Post"]
+        },
+        {
+            "DownstreamPathTemplate": "/api/files/download",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 8002
+                }
+            ],
+            "UpstreamPathTemplate": "/files/download",
+            "UpstreamHttpMethod": [ "Get"]
+        },
+        {
             "DownstreamPathTemplate": "/api/student",
             "DownstreamScheme": "http",
             "DownstreamHost": "localhost",

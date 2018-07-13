@@ -2,6 +2,11 @@
 using WebApiClient;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using WebApiClient.Defaults;
+using WebApiClient.Parameterables;
+using System.Net.Http;
+using Newtonsoft.Json.Linq;
 
 namespace hello_retrofit
 {
@@ -33,6 +38,27 @@ namespace hello_retrofit
                 Console.WriteLine($"result is {result}");
             }
 
-        }
+            //调用Files Service
+            using (var client = HttpApiClient.Create<IFilesApiCaller>())
+            {
+                Console.WriteLine("-----Invoke File Service-----");
+                var files = new string[]
+                {
+                    @"C:\Users\PayneQin\Videos\Rec 0001.mp4",
+                    @"C:\Users\PayneQin\Videos\Rec 0002.mp4",
+                }
+                .Select(f=>new MulitpartFile(File.Open(f,FileMode.Open),Path.GetFileName(f)))
+                .ToList();
+                var result = client.Upload(files).InvokeAsync().Result;
+                Console.WriteLine(result);
+
+                var json = JObject.Parse(result);
+                var fileId = json[0]["FileId"].Value<string>();
+                using(var fileStram = new FileStream("Output/Video001.mp4",FileMode.Create))
+                {
+                    var stream = client.Download(fileId).InvokeAsync().Result;
+                    stream.CopyToAsync(fileStram);
+                }
+            }
     }
 }
