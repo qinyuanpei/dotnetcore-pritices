@@ -47,18 +47,37 @@ namespace hello_retrofit
                     @"C:\Users\PayneQin\Videos\Rec 0001.mp4",
                     @"C:\Users\PayneQin\Videos\Rec 0002.mp4",
                 }
-                .Select(f=>new MulitpartFile(File.Open(f,FileMode.Open),Path.GetFileName(f)))
+                .Select(f=>new MulitpartFile(f))
                 .ToList();
                 var result = client.Upload(files).InvokeAsync().Result;
                 Console.WriteLine(result);
 
                 var json = JObject.Parse(result);
-                var fileId = json[0]["FileId"].Value<string>();
-                using(var fileStram = new FileStream("Output/Video001.mp4",FileMode.Create))
+                //var fileId = json[0]["FileId"].Value<string>();
+                var fileId = "c772cb1d359b45e1a37043228d0ec8bf";
+                var fileName = Path.Combine(Environment.CurrentDirectory,"Output/Video001.mp4");
+                var filePath = Path.GetDirectoryName(fileName);
+                if(!Directory.Exists(filePath)) Directory.CreateDirectory(filePath);
+                using(var fileStram = new FileStream(fileName,FileMode.Create))
                 {
                     var stream = client.Download(fileId).InvokeAsync().Result;
-                    stream.CopyToAsync(fileStram);
+                    stream.Content.ReadAsStreamAsync().Result.CopyToAsync(fileStram);
                 }
             }
+        }
+
+        static MultipartFormDataContent BuildContent(IEnumerable<string> files)
+        {
+            var boundary = "---------------" + DateTime.Now.Ticks.ToString("x");
+            var content = new MultipartFormDataContent(boundary);
+            files.ToList().ForEach(file =>
+            {
+                var fileName = Path.GetFileName(file);
+                var fileStream = new FileStream(file, FileMode.Open);
+                content.Add(new StreamContent(fileStream), "multipartFile", fileName);
+            });
+
+            return content;
+        }
     }
 }

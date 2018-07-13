@@ -16,12 +16,12 @@ namespace hello_retrofit
         [HttpPost("/files/upload")]
         [OAuth2Filter]
         [JsonReturn]
-        ITask<string> Upload(List<MulitpartFile> files);
+        ITask<string> Upload([HttpContent]List<MulitpartFile> files);
         
         
         //POST http://localhost:8000/files/download/{fileId}
         [HttpPost("/files/download/{fileId}")]
         [OAuth2Filter]
-        ITask<StreamContent> Download(string fileId);
+        ITask<HttpResponseMessage> Download(string fileId);
     }
 }

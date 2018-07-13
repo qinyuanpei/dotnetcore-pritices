@@ -9,9 +9,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/hello-webapi-1/bin/Debug/netcoreapp2.1/hello-webapi-1.dll",
+            "program": "${workspaceFolder}/hello-retrofit/bin/Debug/netcoreapp2.1/hello-retrofit.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/hello-webapi-1",
+            "cwd": "${workspaceFolder}/hello-retrofit",
             "console": "internalConsole",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart"
