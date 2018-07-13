@@ -12,7 +12,7 @@ namespace hello_retrofit
     [HttpHost("http://localhost:28203")]
     public interface IAuthApiCaller : IHttpApiClient
     {
-        [HttpGet("/oauth2/tokens")]
+        [HttpPost("/oauth2/token")]
         ITask<string> GetToken([FormField] string client_id,[FormField] string client_secret,[FormField] string grant_type = "client_credentials");
     }
 }

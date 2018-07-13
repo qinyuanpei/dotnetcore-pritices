@@ -23,11 +23,9 @@ namespace hello_retrofit
                 var client_id = "578c06935d7f4c9897316ed50b00c19d";
                 var client_secret = "d851c10e1897482eb6f476e359984b27";
                 var result = client.GetToken(client_id, client_secret).InvokeAsync().Result;
-                Console.WriteLine(result);
                 var json = JObject.Parse(result);
                 var token = json["access_token"].Value<string>();
-                Console.WriteLine($"AccessToken: {token}");
-                context.RequestMessage.Headers.Authorization = new AuthenticationHeaderValue($"Bearer {token}");
+                context.RequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer",token);
                 return base.OnBeginRequestAsync(context);
             }
         }
