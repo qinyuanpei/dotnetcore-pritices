@@ -8,7 +8,7 @@
         "dotnet"
       ],
       "address": "localhost",
-      "port": 8003,
+      "port": 8002,
       "checks": [
         {
           "id": "check02",
@@ -35,7 +35,7 @@
         "dotnet"
       ],
       "address": "localhost",
-      "port": 8003,
+      "port": 8002,
       "checks": [
         {
           "id": "check02",
