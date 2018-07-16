@@ -10,7 +10,9 @@
                 }
             ],
             "UpstreamPathTemplate": "/values1",
-            "UpstreamHttpMethod": [ "Get"]
+            "UpstreamHttpMethod": [ "Get"],
+            "ServiceName": "Values1",
+            "UseServiceDiscovery": true
         },
         {
             "DownstreamPathTemplate": "/api/values1/{id}",
@@ -34,7 +36,9 @@
                 }
             ],
             "UpstreamPathTemplate": "/files/upload",
-            "UpstreamHttpMethod": [ "Post"]
+            "UpstreamHttpMethod": [ "Post"],
+            "ServiceName": "Files",
+            "UseServiceDiscovery": true
         },
         {
             "DownstreamPathTemplate": "/api/files/download",

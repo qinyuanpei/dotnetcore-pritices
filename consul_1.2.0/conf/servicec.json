@@ -1,0 +1,58 @@
+{
+  "services": [
+    {
+      "id": "service01",
+      "name": "Values1",
+      "tags": [
+        "primary",
+        "dotnet"
+      ],
+      "address": "localhost",
+      "port": 8003,
+      "checks": [
+        {
+          "id": "check02",
+          "name": "Health Check for Values1 Service",
+          "http": "https://localhost:5000/health",
+          "tls_skip_verify": false,
+          "method": "POST",
+          "header": {
+            "x-foo": [
+              "bar",
+              "baz"
+            ]
+          },
+          "interval": "10s",
+          "timeout": "1s"
+        }
+      ]
+    },
+    {
+      "id": "service02",
+      "name": "Files",
+      "tags": [
+        "second",
+        "dotnet"
+      ],
+      "address": "localhost",
+      "port": 8003,
+      "checks": [
+        {
+          "id": "check02",
+          "name": "Health Check for Files Service",
+          "http": "https://localhost:5000/health",
+          "tls_skip_verify": false,
+          "method": "POST",
+          "header": {
+            "x-foo": [
+              "bar",
+              "baz"
+            ]
+          },
+          "interval": "10s",
+          "timeout": "1s"
+        }
+      ]
+    }
+  ]
+}
