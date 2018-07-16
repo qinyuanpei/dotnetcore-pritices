@@ -15,8 +15,7 @@ namespace hello_retrofit
         //Post http://localhost:8000/files/upload
         [HttpPost("/files/upload")]
         [OAuth2Filter]
-        [JsonReturn]
-        ITask<string> Upload([HttpContent]List<MulitpartFile> files);
+        ITask<string> Upload(List<MulitpartFile> file);
         
         
         //POST http://localhost:8000/files/download/{fileId}

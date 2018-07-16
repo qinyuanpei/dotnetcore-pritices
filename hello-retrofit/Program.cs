@@ -52,13 +52,12 @@ namespace hello_retrofit
                 var result = client.Upload(files).InvokeAsync().Result;
                 Console.WriteLine(result);
 
-                var json = JObject.Parse(result);
-                //var fileId = json[0]["FileId"].Value<string>();
-                var fileId = "c772cb1d359b45e1a37043228d0ec8bf";
-                var fileName = Path.Combine(Environment.CurrentDirectory,"Output/Video001.mp4");
+                var json = JArray.Parse(result);
+                var fileId = ((JObject)json.First)["fileId"].Value<string>();
+                var fileName = Path.Combine(Environment.CurrentDirectory, "Output/Video001.mp4");
                 var filePath = Path.GetDirectoryName(fileName);
-                if(!Directory.Exists(filePath)) Directory.CreateDirectory(filePath);
-                using(var fileStram = new FileStream(fileName,FileMode.Create))
+                if (!Directory.Exists(filePath)) Directory.CreateDirectory(filePath);
+                using (var fileStram = new FileStream(fileName, FileMode.Create))
                 {
                     var stream = client.Download(fileId).InvokeAsync().Result;
                     stream.Content.ReadAsStreamAsync().Result.CopyToAsync(fileStram);
