@@ -44,25 +44,24 @@
 
                 this.websocket = new WebSocket("ws://localhost:8002/ws?username=" + this.username);
                 
-                var self = this;
                 //链接错误得回调方法
                 this.websocket.onerror = function () {
-                    self.messageList = this.messageList + "<br/>" + "WebSocket连接发生错误";
+                    this.messageList = this.messageList + "<br/>" + "WebSocket连接发生错误";
                 };
 
                 //连接成功建立的回调方法
                 this.websocket.onopen = function () {
-                    self.messageList = this.messageList + "<br/>" + "WebSocket连接成功";
+                    this.messageList = this.messageList + "<br/>" + "WebSocket连接成功";
                 }
 
                 //接收到消息的回调方法
                 this.websocket.onmessage = function (event) {
-                    self.messageList = this.messageList + "<br/>" + event.data;
+                    this.messageList = this.messageList + "<br/>" + event.data;
                 }
 
                 //连接关闭的回调方法
                 this.websocket.onclose = function () {
-                    self.messageList = this.messageList + "<br/>" + "WebSocket连接关闭";
+                    this.messageList = this.messageList + "<br/>" + "WebSocket连接关闭";
                 }
 
                 //监听窗口关闭事件
@@ -79,7 +78,7 @@
             
             sendMessage: function()
             {
-                this.websocket.send(self)
+                this.websocket.send(this)
             }
 
         }
