@@ -78,7 +78,6 @@
             "UpstreamPathTemplate": "/values2",
             "UpstreamHttpMethod": [ "Get"]
         }
-
     ],
     "GlobalConfiguration": {
         "RequestIdKey": "OcRequestId",

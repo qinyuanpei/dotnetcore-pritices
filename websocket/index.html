@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <title>WebSocket聊天室</title>
+</head>
+
+<body>
+    <div id="app">
+        Hi,{{ username }}
+        <br/> 欢迎来到WebSocket聊天室!
+        <br/>
+        <input id="text" type="text" v-model="message" />
+        <button v-on:click="sendMessage">发送消息</button>
+        <hr/>
+        <button v-on:click="openWebSocket">打开WebSocket连接</button>
+        <button v-on:click="closeWebSocket">关闭WebSocket连接</button>
+        <hr/>
+        <div id="messageList">
+            {{ messageList }}
+        </div>
+    </div>
+</body>
+<script>
+    var vm = new Vue({
+        el: "#app",
+        data: {
+            message: "",
+            username: prompt("请输入用户名", ""),
+            messageList: "",
+            websocket: null
+        },
+        methods: {
+            openWebSocket: function () {
+                var isSupport = 'WebSocket' in window;
+                if (!isSupport) {
+                    this.messageList = this.messageList + "<br/>" + "当前浏览器不支持WebSocket";
+                    return;
+                }
+
+                this.websocket = new WebSocket("ws://localhost:8002/ws?username=" + this.username);
+                
+                var self = this;
+                //链接错误得回调方法
+                this.websocket.onerror = function () {
+                    self.messageList = this.messageList + "<br/>" + "WebSocket连接发生错误";
+                };
+
+                //连接成功建立的回调方法
+                this.websocket.onopen = function () {
+                    self.messageList = this.messageList + "<br/>" + "WebSocket连接成功";
+                }
+
+                //接收到消息的回调方法
+                this.websocket.onmessage = function (event) {
+                    self.messageList = this.messageList + "<br/>" + event.data;
+                }
+
+                //连接关闭的回调方法
+                this.websocket.onclose = function () {
+                    self.messageList = this.messageList + "<br/>" + "WebSocket连接关闭";
+                }
+
+                //监听窗口关闭事件
+                var that = this.websocket;
+                window.onbeforeunload = function () {
+                    that.close();
+                }
+            },
+
+            closeWebSocket: function () {
+                if(this.websocket == null) reurn;
+                this.websocket.close();
+            },
+            
+            sendMessage: function()
+            {
+                this.websocket.send(self)
+            }
+
+        }
+    });
+</script>
+
+</html>

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace hello_world
+namespace hello.console
 {
     class Program
     {
