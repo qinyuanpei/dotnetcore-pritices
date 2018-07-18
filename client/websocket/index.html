@@ -12,27 +12,30 @@
 <body>
     <div id="app">
         Hi，{{ username }}。欢迎来到WebSocket聊天室！
-        <hr/>
-        发送给：<select></select>
-        <br/>
-        <input id="text" type="text" v-model="message" />
-        <button v-on:click="sendMessage">发送消息</button>
-        <hr/>
-        <button v-on:click="openWebSocket">打开WebSocket连接</button>
-        <button v-on:click="closeWebSocket">关闭WebSocket连接</button>
-        <hr/>
-        <div id="messageList" v-html="messageList">
-            {{ messageList }}
-        </div>
+        <hr/> 发送给：
+        <select v-model="sendTo">
+            <option v-for="user in userList" :value="user">{{user}}</option </select>
+            <br/>
+            <input id="text" type="text" v-model="message" />
+            <button v-on:click="sendMessage">发送消息</button>
+            <hr/>
+            <button v-on:click="openWebSocket">打开WebSocket连接</button>
+            <button v-on:click="closeWebSocket">关闭WebSocket连接</button>
+            <hr/>
+            <div id="messageList" v-html="messageList">
+                {{ messageList }}
+            </div>
     </div>
 </body>
 <script>
     var vm = new Vue({
         el: "#app",
         data: {
-            message: " ",
+            sendTo: null,
+            message: "",
             username: prompt("请输入用户名", ""),
-            messageList: " ",
+            userList: null,
+            messageList: "",
             websocket: null
         },
         methods: {
@@ -45,6 +48,7 @@
 
                 this.websocket = new WebSocket("ws://localhost:8002/ws?username=" + this.username);
                 let self = this;
+
                 //链接错误得回调方法
                 this.websocket.onerror = function () {
                     self.messageList = self.messageList + "<br/>" + "WebSocket连接发生错误";
@@ -53,11 +57,29 @@
                 //连接成功建立的回调方法
                 this.websocket.onopen = function () {
                     self.messageList = self.messageList + "<br/>" + "WebSocket连接成功";
+                    var message = JSON.stringify({
+                        "event": "Joined",
+                        "data": null
+                    });
+                    self.websocket.send(JSON.stringify({
+                        "type": "event",
+                        "sender": self.username,
+                        "message": message,
+                        "sendTime": new Date()
+                    }));
                 }
 
                 //接收到消息的回调方法
                 this.websocket.onmessage = function (event) {
-                    self.messageList = self.messageList + "<br/>" + event.data;
+                    var data = JSON.parse(event.data);
+                    var entity = JSON.parse(data);
+                    if (entity.type == "event") {
+                        var eventData = JSON.parse(entity.message);
+                        this.userList = eventData.data;
+                    } else {
+                        var message = entity.sendTime + " - " + entity.sender + " : " + entity.message
+                        self.messageList = self.messageList + "<br/>" + message;
+                    }
                 }
 
                 //连接关闭的回调方法
@@ -86,11 +108,12 @@
                     reurn;
                 }
                 this.websocket.send(JSON.stringify({
-                    "sender":this.username,
-                    "receiver":
+                    "sender": this.username,
+                    "receiver": this.sendTo,
+                    "message": this.message,
+                    "sendTime": new Date(),
                 }));
             }
-
         }
     });
 </script>

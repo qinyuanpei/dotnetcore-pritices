@@ -2,13 +2,19 @@ using System;
 
 namespace hello_webapi.Models
 {
-    public class ChatEntity
+    public class MessageEntity
     {
         /// <summary>
         /// 消息发送者
         /// </summary>
         /// <value></value>
         public string Sender { get; set; }
+
+        /// <summary>
+        /// 消息接收者
+        /// </summary>
+        /// <value></value>
+        public string Receiver {get;set;}
 
         /// <summary>
         /// 发送时间
@@ -21,14 +27,23 @@ namespace hello_webapi.Models
         /// </summary>
         /// <value></value>
         public string Message { get; set; }
-
+        
         /// <summary>
-        /// 重写ToString()方法
+        /// 消息类型
         /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return $"{SendTime} - {Sender} : {Message}";
-        }
+        /// <value></value>
+        public MessageType Type {get;set;}
+    }
+
+    public enum MessageType
+    {
+        Chat,
+        Event,
+    }
+
+    public enum Events
+    {
+        Joined,
+        Leaved,
     }
 }

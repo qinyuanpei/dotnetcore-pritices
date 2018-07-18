@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 using System.Threading;
 using hello_webapi.Models;
 using System.Net.WebSockets;
@@ -9,6 +10,7 @@ using System.Text.Encodings;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Owin;
 using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -73,19 +75,52 @@ namespace hello_webapi.Middlewares
             }
 
             var webSocket = _socketsList[userName];
-            switch(webSocket.State)
-            {
-                case WebSocketState.
-            }
             while (webSocket.State == WebSocketState.Open)
             {
-                var message = await ReceiveMessage(webSocket);
-                message = message.Replace("\0", "").Trim();
-                
-                await SendAll(userName,message);
+                var entity = await Receiveentity<MessageEntity>(webSocket);
+                switch (entity.Type)
+                {
+                    case MessageType.Chat:
+                        await HandleChat(webSocket, entity);
+                        break;
+                    case MessageType.Event:
+                        await HandleEvent(entity);
+                        break;
+                }
             }
 
             await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", default(CancellationToken));
+        }
+
+        private async Task HandleChat(WebSocket webSocket, MessageEntity entity)
+        {
+            var receiver = entity.Receiver;
+            if (string.IsNullOrEmpty(receiver))
+            {
+                await SendAll(entity.Sender, entity.Message);
+            }
+            else
+            {
+                await SendOne(entity.Sender, entity.Receiver, entity.Message);
+            }
+        }
+
+        private async Task HandleEvent(MessageEntity entity)
+        {
+            var userName = entity.Sender;
+            var eventData = JsonConvert.DeserializeObject<EventData<object>>(entity.Message);
+            var eventName = eventData.Event;
+            switch (eventName)
+            {
+                case Events.Joined:
+                    await SendAll("系统消息", $"用户{userName}已进入聊天室");
+                    await SendEvent<List<string>>(eventName, _socketsList.Select(e => e.Key).ToList());
+                    break;
+                case Events.Leaved:
+                    await SendAll("系统消息", $"用户{userName}已离开聊天室");
+                    await SendEvent<List<string>>(eventName, _socketsList.Select(e => e.Key).ToList());
+                    break;
+            }
         }
 
         /// <summary>
@@ -94,11 +129,11 @@ namespace hello_webapi.Middlewares
         /// <param name="sender">发送者</param>
         /// <param name="message">消息内容</param>
         /// <returns></returns>
-        private async Task SendAll(string sender, string message)
+        private async Task SendAll(string sender, string message, MessageType type = MessageType.Chat)
         {
             if (_socketsList.Count <= 0) return;
             var tasks = _socketsList
-                .Select(e => SendOne(sender, e.Key, message))
+                .Select(e => SendOne(sender, e.Key, message, type))
                 .ToList();
             await Task.WhenAll(tasks);
         }
@@ -110,13 +145,13 @@ namespace hello_webapi.Middlewares
         /// <param name="receiver">接收者</param>
         /// <param name="message">消息内容</param>
         /// <returns></returns>
-        private async Task SendOne(string sender, string receiver, string message)
+        private async Task SendOne(string sender, string receiver, string message, MessageType type = MessageType.Chat)
         {
             if (sender == receiver) return;
             if (string.IsNullOrEmpty(message)) return;
             if (!ValidateUser(sender) || !ValidateUser(receiver)) return;
             var socket = _socketsList[receiver];
-            var chatEntity = new ChatEntity() { Sender = sender, Message = message };
+            var chatEntity = new MessageEntity() { Sender = sender, Message = message, Type = type };
             await SendMessage(socket, chatEntity);
         }
 
@@ -141,9 +176,17 @@ namespace hello_webapi.Middlewares
             return _socketsList.ContainsKey(userName);
         }
 
-        private async Task SendMessage(WebSocket webSocket, ChatEntity entity)
+        /// <summary>
+        /// 发送消息
+        /// </summary>
+        /// <param name="webSocket">WebSocket</param>
+        /// <param name="entity">消息实体</param>
+        /// <typeparam name="TEntity">typeof(TEntity)</typeparam>
+        /// <returns></returns>
+        private async Task SendMessage<TEntity>(WebSocket webSocket, TEntity entity)
         {
-            var bytes = Encoding.UTF8.GetBytes(entity.ToString());
+            var Json = JsonConvert.SerializeObject(entity);
+            var bytes = Encoding.UTF8.GetBytes(Json);
 
             await webSocket.SendAsync(
                 new ArraySegment<byte>(bytes),
@@ -151,23 +194,24 @@ namespace hello_webapi.Middlewares
                 true,
                 CancellationToken.None
             );
-            // while(webSocket.State == WebSocketState.Open)
-            // {
-            //     var 
-            // }
-            // var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
-            // while (!result.CloseStatus.HasValue)
-            // {
-
-            //     buffer = System.Text.Encoding.UTF8.GetBytes(message);
-            //     await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, buffer.Length), result.MessageType, result.EndOfMessage, CancellationToken.None);
-            //     result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), default(CancellationToken));
-            // }
-            //await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, default(CancellationToken));
         }
 
-        private async Task<string> ReceiveMessage(WebSocket webSocket)
+        private async Task SendEvent<TData>(Events eventName, TData data)
+        {
+            var eventData = new EventData<TData>();
+            eventData.Event = eventName;
+            eventData.Data = data;
+            var message = JsonConvert.SerializeObject(eventData);
+            await SendAll("Server", message, MessageType.Event);
+        }
+
+        /// <summary>
+        /// 接收消息
+        /// </summary>
+        /// <param name="webSocket">WebSocket</param>
+        /// <typeparam name="TEntity">typeof(TEntity)</typeparam>
+        /// <returns></returns>
+        private async Task<TEntity> Receiveentity<TEntity>(WebSocket webSocket)
         {
             var buffer = new ArraySegment<byte>(new byte[bufferSize]);
             var result = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
@@ -176,7 +220,9 @@ namespace hello_webapi.Middlewares
                 result = await webSocket.ReceiveAsync(buffer, default(CancellationToken));
             }
 
-            return Encoding.UTF8.GetString(buffer.Array);
+            var json = Encoding.UTF8.GetString(buffer.Array);
+            json = json.Replace("\0", "").Trim();
+            return JsonConvert.DeserializeObject<TEntity>(json);
         }
     }
 }
