@@ -149,7 +149,7 @@ namespace hello_webapi.Middlewares
         {
             if (sender == receiver) return;
             if (string.IsNullOrEmpty(message)) return;
-            if (!ValidateUser(sender) || !ValidateUser(receiver)) return;
+            if (!ValidateUser(receiver)) return;
             var socket = _socketsList[receiver];
             var chatEntity = new MessageEntity() { Sender = sender, Message = message, Type = type };
             await SendMessage(socket, chatEntity);
@@ -202,7 +202,11 @@ namespace hello_webapi.Middlewares
             eventData.Event = eventName;
             eventData.Data = data;
             var message = JsonConvert.SerializeObject(eventData);
-            await SendAll("Server", message, MessageType.Event);
+            foreach(var kv in _socketsList)
+            {
+                await SendOne("Server",kv.Key,message,MessageType.Event);
+            }
+            
         }
 
         /// <summary>

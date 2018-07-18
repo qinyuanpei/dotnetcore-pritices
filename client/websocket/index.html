@@ -71,6 +71,7 @@
 
                 //接收到消息的回调方法
                 this.websocket.onmessage = function (event) {
+                    console.log(event.data);
                     var data = JSON.parse(event.data);
                     var entity = JSON.parse(data);
                     if (entity.type == "event") {
