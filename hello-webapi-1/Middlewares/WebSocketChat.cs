@@ -69,7 +69,6 @@ namespace hello_webapi.Middlewares
 
             var userName = context.Request.Query["username"].ToArray()[0];
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-
             while (webSocket.State == WebSocketState.Open)
             {
                 var entity = await Receiveentity<MessageEntity>(webSocket);
@@ -87,10 +86,16 @@ namespace hello_webapi.Middlewares
             await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", default(CancellationToken));
         }
 
+        /// <summary>
+        /// 处理WebSocket聊天
+        /// </summary>
+        /// <param name="webSocket">WebSocket</param>
+        /// <param name="entity">Entity of Message</param>
+        /// <returns></returns>
         private async Task HandleChat(WebSocket webSocket, MessageEntity entity)
         {
             var receiver = entity.Receiver;
-            if (receiver == "All")
+            if (receiver == "All" || receiver == "None")
             {
                 await SendAll(entity.Sender, entity.Message);
             }
@@ -99,7 +104,13 @@ namespace hello_webapi.Middlewares
                 await SendOne(entity.Sender, entity.Receiver, entity.Message);
             }
         }
-
+        
+        /// <summary>
+        /// 处理WebSocket事件
+        /// </summary>
+        /// <param name="webSocket"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         private async Task HandleEvent(WebSocket webSocket, MessageEntity entity)
         {
             var userName = entity.Sender;
@@ -107,11 +118,13 @@ namespace hello_webapi.Middlewares
             var eventName = eventData.Event;
             switch (eventName)
             {
+                //用户进入聊天室
                 case Events.Joined:
                     _socketsList.TryAdd(userName, webSocket);
                     await SendAll("系统消息", $"用户{userName}已进入聊天室");
                     await SendEvent<List<string>>(eventName, _socketsList.Select(e => e.Key).ToList());
                     break;
+                //用户离开聊天室
                 case Events.Leaved:
                     _socketsList.TryRemove(userName, out webSocket);
                     await SendAll("系统消息", $"用户{userName}已离开聊天室");
@@ -196,6 +209,13 @@ namespace hello_webapi.Middlewares
             );
         }
 
+        /// <summary>
+        /// 发送事件
+        /// </summary>
+        /// <param name="eventName">事件名称</param>
+        /// <param name="data">事件参数</param>
+        /// <typeparam name="TData"></typeparam>
+        /// <returns></returns>
         private async Task SendEvent<TData>(Events eventName, TData data)
         {
             var eventData = new EventData<TData>();
