@@ -1,4 +1,6 @@
 using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace hello_webapi.Models
 {
@@ -32,6 +34,7 @@ namespace hello_webapi.Models
         /// 消息类型
         /// </summary>
         /// <value></value>
+        [JsonConverter(typeof(StringEnumConverter))]
         public MessageType Type {get;set;}
     }
 

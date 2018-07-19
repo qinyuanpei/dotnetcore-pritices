@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="moment.min.js"></script>
     <title>WebSocket聊天室</title>
 </head>
 
@@ -14,35 +15,39 @@
         Hi，{{ username }}。欢迎来到WebSocket聊天室！
         <hr/> 发送给：
         <select v-model="sendTo">
-            <option v-for="user in userList" :value="user">{{user}}</option </select>
-            <br/>
-            <input id="text" type="text" v-model="message" />
-            <button v-on:click="sendMessage">发送消息</button>
-            <hr/>
-            <button v-on:click="openWebSocket">打开WebSocket连接</button>
-            <button v-on:click="closeWebSocket">关闭WebSocket连接</button>
-            <hr/>
-            <div id="messageList" v-html="messageList">
-                {{ messageList }}
-            </div>
+            <option value="All">全部</option>
+            <option v-for="user in userList" :value="user">{{user}}</option>
+        </select>
+        <hr/>
+        <input id="text" type="text" v-model="message" />
+        <button v-on:click="sendMessage">发送消息</button>
+        <hr/>
+        <button v-on:click="openWebSocket">打开WebSocket连接</button>
+        <button v-on:click="closeWebSocket">关闭WebSocket连接</button>
+        <button v-on:click="clearMessageList">清空聊天记录</button>
+        <hr/>
+        <div id="messageList" v-html="messageList">
+            {{ messageList }}
+        </div>
     </div>
 </body>
 <script>
     var vm = new Vue({
         el: "#app",
         data: {
-            sendTo: null,
+            sendTo: "All",
             message: "",
             username: prompt("请输入用户名", ""),
             userList: null,
-            messageList: "",
+            messageList: null,
             websocket: null
         },
         methods: {
             openWebSocket: function () {
                 var isSupport = 'WebSocket' in window;
                 if (!isSupport) {
-                    this.messageList = this.messageList + "<br/>" + "当前浏览器不支持WebSocket";
+                    var message = self.formatMessage(new Date(), "系统消息", "当前浏览器不支持WebSocket");
+                    self.messageList = self.messageList == null ? message : self.messageList + "<br/>" + message;
                     return;
                 }
 
@@ -51,41 +56,35 @@
 
                 //链接错误得回调方法
                 this.websocket.onerror = function () {
-                    self.messageList = self.messageList + "<br/>" + "WebSocket连接发生错误";
+                    var message = self.formatMessage(new Date(), "系统消息", "WebSocket连接发生错误");
+                    self.messageList = self.messageList == null ? message : self.messageList + "<br/>" + message;
                 };
 
                 //连接成功建立的回调方法
                 this.websocket.onopen = function () {
-                    self.messageList = self.messageList + "<br/>" + "WebSocket连接成功";
-                    var message = JSON.stringify({
-                        "event": "Joined",
-                        "data": null
-                    });
-                    self.websocket.send(JSON.stringify({
-                        "type": "event",
-                        "sender": self.username,
-                        "message": message,
-                        "sendTime": new Date()
-                    }));
+                    var message = self.formatMessage(new Date(), "系统消息", "WebSocket连接成功");
+                    self.messageList = self.messageList == null ? message : self.messageList + "<br/>" + message;
+                    self.sendEvent("Joined");
                 }
 
                 //接收到消息的回调方法
                 this.websocket.onmessage = function (event) {
-                    console.log(event.data);
-                    var data = JSON.parse(event.data);
-                    var entity = JSON.parse(data);
-                    if (entity.type == "event") {
-                        var eventData = JSON.parse(entity.message);
-                        this.userList = eventData.data;
+                    var entity = JSON.parse(event.data);
+                    if (entity.Type == "Event") {
+                        var eventData = JSON.parse(entity.Message);
+                        self.userList = eventData.Data.filter(function (data) {
+                            return data != self.username;
+                        });
                     } else {
-                        var message = entity.sendTime + " - " + entity.sender + " : " + entity.message
-                        self.messageList = self.messageList + "<br/>" + message;
+                        var message = self.formatMessage(entity.SendTime, entity.Sender, entity.Message);
+                        self.messageList = self.messageList == null ? message : self.messageList + "<br/>" + message;
                     }
                 }
 
                 //连接关闭的回调方法
                 this.websocket.onclose = function () {
-                    self.messageList = self.messageList + "<br/>" + "WebSocket连接关闭";
+                    var message = self.formatMessage(new Date(), "系统消息", "WebSocket连接关闭");
+                    self.messageList = self.messageList == null ? message : self.messageList + "<br/>" + message;
                 }
 
                 //监听窗口关闭事件
@@ -93,7 +92,8 @@
                     if (self.websocket == null) {
                         reurn;
                     }
-                    self.websocket.close();
+
+                    self.closeWebSocket();
                 }
             },
 
@@ -101,6 +101,8 @@
                 if (this.websocket == null) {
                     reurn;
                 }
+
+                this.sendEvent("Leaved");
                 this.websocket.close();
             },
 
@@ -108,12 +110,47 @@
                 if (this.websocket == null) {
                     reurn;
                 }
+
+                if (this.message == null || this.message == "") {
+                    alert("不允许发送空消息");
+                    return;
+                }
                 this.websocket.send(JSON.stringify({
                     "sender": this.username,
                     "receiver": this.sendTo,
                     "message": this.message,
-                    "sendTime": new Date(),
+                    "sendTime": new Date().toISOString(),
                 }));
+
+                var message = this.formatMessage(new Date(), this.username, this.message);
+                this.messageList = this.messageList == null ? message : this.messageList + "<br/>" + message;
+                this.message = null;
+            },
+
+            sendEvent: function (eventName) {
+                if (this.websocket == null) {
+                    return;
+                }
+
+                var eventData = JSON.stringify({
+                    "event": eventName,
+                    "data": null
+                });
+
+                this.websocket.send(JSON.stringify({
+                    "type": "event",
+                    "sender": this.username,
+                    "message": eventData,
+                    "sendTime": new Date().toISOString(),
+                }));
+            },
+
+            formatMessage: function (sendTime, sender, message) {
+                return moment(sendTime).format("YYYY-MM-DD hh:mm:ss") + " - " + sender + " : " + message;
+            },
+
+            clearMessageList: function () {
+                this.messageList = null;
             }
         }
     });

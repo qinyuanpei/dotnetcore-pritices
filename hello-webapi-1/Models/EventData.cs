@@ -1,6 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json.Converters;
 
 namespace hello_webapi.Models
 {
@@ -11,6 +13,7 @@ namespace hello_webapi.Models
         /// 事件名称
         /// </summary>
         /// <value></value>
+        [JsonConverter(typeof(StringEnumConverter))]
         public Events Event { get; set; }
 
         /// <summary>

@@ -68,13 +68,8 @@ namespace hello_webapi.Middlewares
             }
 
             var userName = context.Request.Query["username"].ToArray()[0];
-            var socket = await context.WebSockets.AcceptWebSocketAsync();
-            if (!ValidateUser(userName))
-            {
-                _socketsList.TryAdd(userName, socket);
-            }
+            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
-            var webSocket = _socketsList[userName];
             while (webSocket.State == WebSocketState.Open)
             {
                 var entity = await Receiveentity<MessageEntity>(webSocket);
@@ -84,7 +79,7 @@ namespace hello_webapi.Middlewares
                         await HandleChat(webSocket, entity);
                         break;
                     case MessageType.Event:
-                        await HandleEvent(entity);
+                        await HandleEvent(webSocket, entity);
                         break;
                 }
             }
@@ -95,7 +90,7 @@ namespace hello_webapi.Middlewares
         private async Task HandleChat(WebSocket webSocket, MessageEntity entity)
         {
             var receiver = entity.Receiver;
-            if (string.IsNullOrEmpty(receiver))
+            if (receiver == "All")
             {
                 await SendAll(entity.Sender, entity.Message);
             }
@@ -105,7 +100,7 @@ namespace hello_webapi.Middlewares
             }
         }
 
-        private async Task HandleEvent(MessageEntity entity)
+        private async Task HandleEvent(WebSocket webSocket, MessageEntity entity)
         {
             var userName = entity.Sender;
             var eventData = JsonConvert.DeserializeObject<EventData<object>>(entity.Message);
@@ -113,10 +108,12 @@ namespace hello_webapi.Middlewares
             switch (eventName)
             {
                 case Events.Joined:
+                    _socketsList.TryAdd(userName, webSocket);
                     await SendAll("系统消息", $"用户{userName}已进入聊天室");
                     await SendEvent<List<string>>(eventName, _socketsList.Select(e => e.Key).ToList());
                     break;
                 case Events.Leaved:
+                    _socketsList.TryRemove(userName, out webSocket);
                     await SendAll("系统消息", $"用户{userName}已离开聊天室");
                     await SendEvent<List<string>>(eventName, _socketsList.Select(e => e.Key).ToList());
                     break;
@@ -185,6 +182,9 @@ namespace hello_webapi.Middlewares
         /// <returns></returns>
         private async Task SendMessage<TEntity>(WebSocket webSocket, TEntity entity)
         {
+            var settings = new JsonSerializerSettings();
+            settings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+            settings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
             var Json = JsonConvert.SerializeObject(entity);
             var bytes = Encoding.UTF8.GetBytes(Json);
 
@@ -202,11 +202,7 @@ namespace hello_webapi.Middlewares
             eventData.Event = eventName;
             eventData.Data = data;
             var message = JsonConvert.SerializeObject(eventData);
-            foreach(var kv in _socketsList)
-            {
-                await SendOne("Server",kv.Key,message,MessageType.Event);
-            }
-            
+            await SendAll("Server", message, MessageType.Event);
         }
 
         /// <summary>
@@ -226,7 +222,10 @@ namespace hello_webapi.Middlewares
 
             var json = Encoding.UTF8.GetString(buffer.Array);
             json = json.Replace("\0", "").Trim();
-            return JsonConvert.DeserializeObject<TEntity>(json);
+            return JsonConvert.DeserializeObject<TEntity>(json, new JsonSerializerSettings()
+            {
+                DateTimeZoneHandling = DateTimeZoneHandling.Local
+            });
         }
     }
 }
