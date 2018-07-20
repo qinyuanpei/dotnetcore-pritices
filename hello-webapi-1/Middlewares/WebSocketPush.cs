@@ -45,7 +45,7 @@ namespace hello_webapi.Middlewares
 
         private TimeSpan interval = TimeSpan.FromMinutes(2);
 
-        private readonly RedisClient _redisConsumer;
+        private readonly SimpleMessageQueue _messageQueue;
 
         private RedisConfiguration _configuration;
 
@@ -61,7 +61,7 @@ namespace hello_webapi.Middlewares
             _logger = logger;
             var section = configuration.GetSection("Redis");
             _configuration = section.Get<RedisConfiguration>();
-            _redisConsumer = new RedisClient(_configuration.Host);
+           _messageQueue = new SimpleMessageQueue(_configuration.Host);
         }
 
         public async Task Invoke(HttpContext context)
@@ -75,18 +75,8 @@ namespace hello_webapi.Middlewares
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
             while (webSocket.State == WebSocketState.Open)
             {
-                using (var subscription = _redisConsumer.CreateSubscription())
-                {
-                    subscription.OnMessage = async (channel, msg) =>
-                    {
-                        Console.WriteLine(msg);
-                        await SendMessage(webSocket, msg);
-                    };
-                    
-                    var _redisPublisher = new RedisClient(_configuration.Host);
-                    _redisPublisher.PublishMessage("barrage","Hello Redis");
-                    subscription.SubscribeToChannels("barrage");
-                }
+                var message = _messageQueue.Pull("barrage",TimeSpan.FromMilliseconds(2));
+                await SendMessage(webSocket,message);
             }
 
             await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", default(CancellationToken));

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Newtonsoft.Json;
 using hello_webapi.Models;
 using ServiceStack.Redis;
-using hello_webapi.Models;
+using hello_webapi.Middlewares;
 using Microsoft.Extensions.Configuration;
 
 
@@ -22,13 +22,13 @@ namespace hello_webapi.Controllers
     {
         private RedisConfiguration _configuration;
 
-        private readonly RedisClient _redisPublisher;
+        private readonly SimpleMessageQueue _redisPublisher;
 
         public MessageController(IConfiguration configuration)
         {
             var section = configuration.GetSection("Redis");
             _configuration = section.Get<RedisConfiguration>();
-            _redisPublisher = new RedisClient(_configuration.Host);
+            _redisPublisher = new SimpleMessageQueue(_configuration.Host);
         }
 
         [HttpPost]
@@ -39,7 +39,7 @@ namespace hello_webapi.Controllers
             byte[] buffer = new  byte[HttpContext.Request.ContentLength.Value];
             stream.Read(buffer, 0, buffer.Length);
             string message = System.Text.Encoding.UTF8.GetString(buffer);
-            _redisPublisher.PublishMessage("barrage", message);
+            _redisPublisher.Push("barrage", message);
             return Ok();
         }
     }

@@ -61,8 +61,8 @@ namespace hello_webapi
             });
 
             app.UseMvc();
-            app.UseWebSocketChat();
-            //app.UseWebSocketPush();
+            //app.UseWebSocketChat();
+            app.UseWebSocketPush();
         }
     }
 }
