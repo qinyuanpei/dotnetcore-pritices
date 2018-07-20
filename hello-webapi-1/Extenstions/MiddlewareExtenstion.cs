@@ -11,5 +11,10 @@ namespace hello_webapi.Extenstions
         {
             app.UseMiddleware<WebSocketChat>();
         }
+
+        public static void UseWebSocketPush(this IApplicationBuilder app)
+        {
+            app.UseMiddleware<WebSocketPush>();
+        }
     }
 }

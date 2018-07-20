@@ -13,8 +13,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Owin;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using ServiceStack.Redis;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace hello_webapi.Middlewares
@@ -39,9 +41,13 @@ namespace hello_webapi.Middlewares
         /// <summary>
         /// URL地址后缀
         /// </summary>
-        private const string routePostfix = "/ws";
+        private const string routePostfix = "/push";
 
         private TimeSpan interval = TimeSpan.FromMinutes(2);
+
+        private readonly RedisClient _redisConsumer;
+
+        private RedisConfiguration _configuration;
 
 
         /// <summary>
@@ -49,10 +55,13 @@ namespace hello_webapi.Middlewares
         /// </summary>
         /// <param name="next">下一级管道</param>
         /// <param name="logger">日志接口</param>
-        public WebSocketPush(RequestDelegate next, ILogger<WebSocketChat> logger)
+        public WebSocketPush(RequestDelegate next, ILogger<WebSocketChat> logger, IConfiguration configuration)
         {
             _next = next;
             _logger = logger;
+            var section = configuration.GetSection("Redis");
+            _configuration = section.Get<RedisConfiguration>();
+            _redisConsumer = new RedisClient(_configuration.Host);
         }
 
         public async Task Invoke(HttpContext context)
@@ -64,15 +73,20 @@ namespace hello_webapi.Middlewares
             }
 
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            var timer = new System.Timers.Timer(interval.TotalMilliseconds);
-            timer.Elapsed +=(s,e)=>
-            {
-
-            };
-            
             while (webSocket.State == WebSocketState.Open)
             {
-                
+                using (var subscription = _redisConsumer.CreateSubscription())
+                {
+                    subscription.OnMessage = async (channel, msg) =>
+                    {
+                        Console.WriteLine(msg);
+                        await SendMessage(webSocket, msg);
+                    };
+                    
+                    var _redisPublisher = new RedisClient(_configuration.Host);
+                    _redisPublisher.PublishMessage("barrage","Hello Redis");
+                    subscription.SubscribeToChannels("barrage");
+                }
             }
 
             await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", default(CancellationToken));
@@ -105,6 +119,18 @@ namespace hello_webapi.Middlewares
             settings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
             var Json = JsonConvert.SerializeObject(entity);
             var bytes = Encoding.UTF8.GetBytes(Json);
+
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(bytes),
+                WebSocketMessageType.Text,
+                true,
+                CancellationToken.None
+            );
+        }
+
+        private async Task SendMessage(WebSocket webSocket, string message)
+        {
+            var bytes = Encoding.UTF8.GetBytes(message);
 
             await webSocket.SendAsync(
                 new ArraySegment<byte>(bytes),

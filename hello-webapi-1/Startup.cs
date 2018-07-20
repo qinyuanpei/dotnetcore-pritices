@@ -62,42 +62,7 @@ namespace hello_webapi
 
             app.UseMvc();
             app.UseWebSocketChat();
-            app.Use(async (context, next) =>
-            {
-                var requestPath = context.Request.Path;
-                if (requestPath == "/ws")
-                {
-                    if (context.WebSockets.IsWebSocketRequest)
-                    {
-                        var socket = await context.WebSockets.AcceptWebSocketAsync();
-                        await Echo(context,socket);
-                    }
-                    else
-                    {
-                        context.Response.StatusCode = 400;
-                    }
-                }
-
-                await next();
-            });
-
-        }
-
-        private async Task Echo(HttpContext context, WebSocket webSocket)
-        {
-            var buffer = new byte[1024 * 4];
-            WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), default(CancellationToken));
-            while (!result.CloseStatus.HasValue)
-            {
-                
-                var message = System.Text.Encoding.UTF8.GetString(buffer,0,buffer.Length).Trim();
-                var date = DateTime.Now;
-                buffer = System.Text.Encoding.UTF8.GetBytes($"服务器收到消息:{message}");
-                await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, default(CancellationToken));
-
-                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), default(CancellationToken));
-            }
-            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, default(CancellationToken));
+            //app.UseWebSocketPush();
         }
     }
 }
