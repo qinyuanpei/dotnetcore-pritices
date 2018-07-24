@@ -7,44 +7,35 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="moment.min.js"></script>
+    <script src="barrage.js"></script>
     <title>WebSocket实时弹幕</title>
 </head>
 
 <body>
     <div id="app">
-        <div id="messageList" v-html="messageList">
-            {{ messageList }}
-        </div>
-        <video id="player" poster="cover.jpg" preload="none" controls playsinline webkit-playsinline autoplay="true" preload="auto">
-            <!-- MP4 for Safari, IE9, iPhone, iPad, Android, and Windows Phone 7 -->
-            <source type="video/mp4" src="video.mp4" />
-            <!-- WebM/VP8 for Firefox4, Opera, and Chrome -->
-            <source type="video/webm" src="video.webm" />
-            <!-- Ogg/Vorbis for older Firefox and Opera versions -->
-            <source type="video/ogg" src="video.ogv" />
-            <!-- Flash fallback for non-HTML5 browsers without JavaScript -->
-            <object width="320" height="240" type="application/x-shockwave-flash" data="flashmediaelement.swf">
-                <param name="movie" value="flashmediaelement.swf" />
-                <param name="flashvars" value="controls=true&file=video.mp4" />
-                <!-- Image as a last resort -->
-                <img src="cover.jpg" width="320" height="240" title="No video playback capabilities" />
-            </object>
-        </video>
+        <canvas id="canvasBarrage" class="canvas-barrage"></canvas>
+        <video id="videoBarrage" width="640" height="480" src="./video.mp4" controls></video>
     </div>
 </body>
 <script>
     var vm = new Vue({
         el: "#app",
         data: {
-            messageList: null,
+            barrage: null,
             websocket: null
         },
         methods: {
+            initBarrage: function () {
+                var eleCanvas = document.getElementById('canvasBarrage');
+                var eleVideo = document.getElementById('videoBarrage');
+                this.barrage = new CanvasBarrage(eleCanvas, eleVideo, null);
+                this.openWebSocket();
+            },
             openWebSocket: function () {
                 var isSupport = 'WebSocket' in window;
                 if (!isSupport) {
                     var message = self.formatMessage(new Date(), "系统消息", "当前浏览器不支持WebSocket");
-                    self.messageList = self.messageList == null ? message : self.messageList + "<br/>" + message;
+                    console.log(message);
                     return;
                 }
 
@@ -54,25 +45,30 @@
                 //链接错误得回调方法
                 this.websocket.onerror = function () {
                     var message = self.formatMessage(new Date(), "系统消息", "WebSocket连接发生错误");
-                    self.messageList = self.messageList == null ? message : self.messageList + "<br/>" + message;
+                    console.log(message);
                 };
 
                 //连接成功建立的回调方法
                 this.websocket.onopen = function () {
                     var message = self.formatMessage(new Date(), "系统消息", "WebSocket连接成功");
-                    self.messageList = self.messageList == null ? message : self.messageList + "<br/>" + message;
+                    console.log(message);
                 }
 
                 //接收到消息的回调方法
                 this.websocket.onmessage = function (event) {
-                    var message = event.data
-                    self.messageList = self.messageList == null ? message : self.messageList + "<br/>" + message;
+                    var message = event.data;
+                    console.log(message);
+                    var eleVideo = document.getElementById('videoBarrage');
+                    self.barrage.add({
+                        value: message,
+                        time: eleVideo.currentTime
+                    });
                 }
 
                 //连接关闭的回调方法
                 this.websocket.onclose = function () {
                     var message = self.formatMessage(new Date(), "系统消息", "WebSocket连接关闭");
-                    self.messageList = self.messageList == null ? message : self.messageList + "<br/>" + message;
+                    console.log(message);
                 }
 
                 //监听窗口关闭事件
@@ -91,7 +87,6 @@
                     reurn;
                 }
 
-                this.sendEvent("Leaved");
                 this.websocket.close();
             },
 
@@ -99,14 +94,10 @@
             formatMessage: function (sendTime, sender, message) {
                 return moment(sendTime).format("YYYY-MM-DD hh:mm:ss") + " - " + sender + " : " + message;
             },
-
-            //清空消息列表
-            clearMessageList: function () {
-                this.messageList = null;
-            }
         },
     });
-    
-    vm.openWebSocket();
+
+    vm.initBarrage();
 </script>
+
 </html>
