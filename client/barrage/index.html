@@ -28,7 +28,24 @@
             initBarrage: function () {
                 var eleCanvas = document.getElementById('canvasBarrage');
                 var eleVideo = document.getElementById('videoBarrage');
-                this.barrage = new CanvasBarrage(eleCanvas, eleVideo, null);
+                this.barrage = new CanvasBarrage(eleCanvas, eleVideo, {
+                    data: [{
+                        value: '弹幕1',
+                        time: 1,
+                        color: 'black'
+                    },
+                    {
+                        value: '弹幕2',
+                        time: 1,
+                        color: 'red'
+                    },
+                    {
+                        value: '弹幕3',
+                        time: 1,
+                        color: 'red'
+                    }
+                    ]
+                });
                 this.openWebSocket();
             },
             openWebSocket: function () {

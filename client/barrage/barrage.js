@@ -179,8 +179,13 @@ var CanvasBarrage = function (canvas, video, options) {
 		// 清除画布
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		
+		console.log("开始draw...")
+
 		// 绘制画布
 		draw();
+
+		console.log("结束draw...")
+
 
 		// 继续渲染
 		if (isPause == false) {
