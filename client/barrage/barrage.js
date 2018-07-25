@@ -5,46 +5,51 @@
 ** MIT License
 ** 保留版权申明
 */
+var iniselftions = function (cxt, opts, keys) {
+	for (var key in keys) {
+		if (opts[key]) {
+			cxt[key] = opts[key];
+		} else {
+			cxt[key] = keys[key];
+		}
+	}
+
+	return cxt;
+};
+
 var CanvasBarrage = function (canvas, video, options) {
 	if (!canvas || !video) {
-		return;	
+		return;
 	}
+
+	/* 默认配置 */
 	var defaults = {
 		opacity: 100,
 		fontSize: 24,
 		speed: 2,
-		range: [0,1],
+		range: [0, 1],
 		color: 'white',
 		data: []
 	};
-	
+
+	/* 合并参数 */
 	options = options || {};
-	
-	var params = {};
-	// 参数合并
-	for (var key in defaults) {
-		if (options[key]) {
-			params[key] = options[key];
-		} else {
-			params[key] = defaults[key];
-		}
-		
-		this[key] = params[key];
-	}
-	var top = this;
-	var data = top.data;
-	
+	var self = iniselftions(this, options, defaults);
+	var data = self.data
 	if (!data || !data.length) {
 		return;
 	}
 
+	/* 初始化Canvas */
 	var context = canvas.getContext('2d');
 	canvas.width = canvas.clientWidth;
 	canvas.height = canvas.clientHeight;
 
+	/* 初始化内部属性 */
+
 	// 存储实例
 	var store = {};
-	
+
 	// 暂停与否
 	var isPause = true;
 	// 播放时长
@@ -61,7 +66,7 @@ var CanvasBarrage = function (canvas, video, options) {
 		// data中的可以覆盖全局的设置
 		this.init = function () {
 			// 1. 速度
-			var speed = top.speed;
+			var speed = self.speed;
 			if (obj.hasOwnProperty('speed')) {
 				speed = obj.speed;
 			}
@@ -70,26 +75,26 @@ var CanvasBarrage = function (canvas, video, options) {
 				speed = speed + obj.value.length / 100;
 			}
 			// 2. 字号大小
-			var fontSize = obj.fontSize || top.fontSize;
+			var fontSize = obj.fontSize || self.fontSize;
 
 			// 3. 文字颜色
-			var color = obj.color || top.color;
+			var color = obj.color || self.color;
 			// 转换成rgb颜色
 			color = (function () {
 				var div = document.createElement('div');
 				div.style.backgroundColor = color;
 				document.body.appendChild(div);
-				var c = window.getComputedStyle(div).backgroundColor;	
+				var c = window.getComputedStyle(div).backgroundColor;
 				document.body.removeChild(div);
 				return c;
 			})();
-			
+
 			// 4. range范围
-			var range = obj.range || top.range;
+			var range = obj.range || self.range;
 			// 5. 透明度
-			var opacity = obj.opacity || top.opacity;
+			var opacity = obj.opacity || self.opacity;
 			opacity = opacity / 100;
-			
+
 			// 计算出内容长度
 			var span = document.createElement('span');
 			span.style.position = 'absolute';
@@ -102,11 +107,11 @@ var CanvasBarrage = function (canvas, video, options) {
 			this.width = span.clientWidth;
 			// 移除dom元素
 			document.body.removeChild(span);
-			
+
 			// 初始水平位置和垂直位置
 			this.x = canvas.width;
 			if (speed == 0) {
-				this.x	= (this.x - this.width) / 2;
+				this.x = (this.x - this.width) / 2;
 			}
 			this.actualX = canvas.width;
 			this.y = range[0] * canvas.height + (range[1] - range[0]) * canvas.height * Math.random();
@@ -115,23 +120,23 @@ var CanvasBarrage = function (canvas, video, options) {
 			} else if (this.y > canvas.height - fontSize) {
 				this.y = canvas.height - fontSize;
 			}
-			
+
 			this.moveX = speed;
 			this.opacity = opacity;
 			this.color = color;
 			this.range = range;
-			this.fontSize = fontSize;	
+			this.fontSize = fontSize;
 		};
-		
-		this.draw = function () {			
+
+		this.draw = function () {
 			// 根据此时x位置绘制文本
-			context.shadowColor = 'rgba(0,0,0,'+ this.opacity +')';
+			context.shadowColor = 'rgba(0,0,0,' + this.opacity + ')';
 			context.shadowBlur = 2;
 			context.font = this.fontSize + 'px "microsoft yahei", sans-serif';
 			if (/rgb\(/.test(this.color)) {
-				context.fillStyle = 'rgba('+ this.color.split('(')[1].split(')')[0] +','+ this.opacity +')';
+				context.fillStyle = 'rgba(' + this.color.split('(')[1].split(')')[0] + ',' + this.opacity + ')';
 			} else {
-				context.fillStyle = this.color;	
+				context.fillStyle = this.color;
 			}
 			// 填色
 			context.fillText(this.value, this.x, this.y);
@@ -146,7 +151,7 @@ var CanvasBarrage = function (canvas, video, options) {
 	var draw = function () {
 		for (var index in store) {
 			var barrage = store[index];
-			
+
 			if (barrage && !barrage.disabled && time >= barrage.time) {
 				if (!barrage.inited) {
 					barrage.init();
@@ -155,7 +160,7 @@ var CanvasBarrage = function (canvas, video, options) {
 				barrage.x -= barrage.moveX;
 				if (barrage.moveX == 0) {
 					// 不动的弹幕
-					barrage.actualX -= top.speed;
+					barrage.actualX -= self.speed;
 				} else {
 					barrage.actualX = barrage.x;
 				}
@@ -167,24 +172,21 @@ var CanvasBarrage = function (canvas, video, options) {
 					barrage.disabled = true;
 				}
 				// 根据新位置绘制圆圈圈
-				barrage.draw();	
+				barrage.draw();
 			}
 		}
 	};
-	
+
 	// 画布渲染
 	var render = function () {
 		// 更新已经播放时间
 		time = video.currentTime;
 		// 清除画布
 		context.clearRect(0, 0, canvas.width, canvas.height);
-		
-		console.log("开始draw...")
 
 		// 绘制画布
 		draw();
 
-		console.log("结束draw...")
 
 
 		// 继续渲染
@@ -192,7 +194,7 @@ var CanvasBarrage = function (canvas, video, options) {
 			requestAnimationFrame(render);
 		}
 	};
-	
+
 	// 视频处理
 	video.addEventListener('play', function () {
 		isPause = false;
@@ -203,21 +205,21 @@ var CanvasBarrage = function (canvas, video, options) {
 	});
 	video.addEventListener('seeked', function () {
 		// 跳转播放需要清屏
-		top.reset();
+		self.reset();
 	});
-	
-	
+
+
 	// 添加数据的方法 
-	this.add = function (obj) {
+	self.add = function (obj) {
 		store[Object.keys(store).length] = new Barrage(obj);
 	};
-	
+
 	// 重置
 	this.reset = function () {
 		time = video.currentTime;
 		// 画布清除
 		context.clearRect(0, 0, canvas.width, canvas.height);
-		
+
 		for (var index in store) {
 			var barrage = store[index];
 			if (barrage) {
