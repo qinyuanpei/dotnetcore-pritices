@@ -8,6 +8,7 @@
     <meta name="keywords" content="html5, canvas, video, 弹幕, 视频" />
     <meta name="author" content="张鑫旭, zhangxinxu" />
     <title></title>
+    <script src="barrage.js"></script>
     <!-- <link rel="stylesheet" href="../css/demo.css"> -->
     <!-- <link rel="stylesheet" href="../css/hl.css"> -->
     <link rel="stylesheet" href="https://qidian.gtimg.com/c/=/lulu/theme/peak/css/common/ui/Button.css,/lulu/theme/peak/css/common/ui/Range.css,/lulu/theme/peak/css/common/ui/Input.css,/lulu/theme/peak/css/common/ui/Tips.css,/lulu/theme/peak/css/common/ui/Radio.css,/lulu/theme/peak/css/common/ui/Color.css">
@@ -92,14 +93,46 @@
             </div>
         </div>
     </div>
-    <script src="./barrage.js"></script>
     <script>
 
         // 初始化弹幕方法
         var eleCanvas = document.getElementById('canvasBarrage');
         var eleVideo = document.getElementById('videoBarrage');
 
-        var demoBarrage = new CanvasBarrage(eleCanvas, eleVideo, {});
+        var demoBarrage = new CanvasBarrage(eleCanvas, eleVideo, {
+            data: [{
+                value: '弹幕1',
+                time: 1,
+                color: 'black'
+            },
+            {
+                value: '弹幕2',
+                time: 1,
+                color: 'red'
+            },
+            {
+                value: '弹幕3',
+                time: 1,
+                color: 'red'
+            }]
+        });
+
+
+        var isSupport = 'WebSocket' in window;
+        if (!isSupport) {
+            console.log("xxxx");
+        }
+
+        var websocket = new WebSocket("ws://localhost:8002/push");
+
+        websocket.onmessage = function (event) {
+            var message = event.data;
+            console.log(message);
+            var eleVideo = document.getElementById('videoBarrage');
+            console.log(JSON.parse(message))
+            demoBarrage.add(JSON.parse(message));
+        }
+
 
         // 下面是交互处理，与弹幕方法本身无关，旨在演示如何修改全局设置，新增弹幕等
         // 1. 全局的弹幕大小，位置和透明度处理
@@ -118,11 +151,22 @@
             var elForm = $('#barrageForm'), elInput = $('#input');
             elForm.on('submit', function (event) {
                 event.preventDefault();
-                // 新增弹幕
-                demoBarrage.add({
-                    value: $('#input').val(),
-                    color: $('#color').val(),
-                    time: eleVideo.currentTime
+                // // 新增弹幕
+                // demoBarrage.add({
+                //     value: $('#input').val(),
+                //     color: $('#color').val(),
+                //     time: eleVideo.currentTime
+                // });
+                $.ajax({
+                    type: 'POST',
+                    url: "http://localhost:8002/api/message/publish/barrage",
+                    data: JSON.stringify({
+                        value: $('#input').val(),
+                        color: $('#color').val(),
+                        time: eleVideo.currentTime
+                    }),
+                    success: function(res){console.log(res);},
+                    dataType: 'json'
                 });
 
                 elInput.val('').trigger('input');

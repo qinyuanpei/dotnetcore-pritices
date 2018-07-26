@@ -40,6 +40,7 @@ namespace hello_webapi.Controllers
             stream.Read(buffer, 0, buffer.Length);
             string message = System.Text.Encoding.UTF8.GetString(buffer);
             _redisPublisher.Push("barrage", message);
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
             return Ok();
         }
     }
