@@ -52,6 +52,8 @@ namespace hello_webapi
                 app.UseHsts();
             }
             
+            app.UseDirectoryBrowser();
+            app.UseStaticFiles();
 
             //app.UseHttpsRedirection();
             app.UseWebSockets(new WebSocketOptions()
@@ -63,6 +65,8 @@ namespace hello_webapi
             app.UseMvc();
             //app.UseWebSocketChat();
             app.UseWebSocketPush();
+
+
         }
     }
 }

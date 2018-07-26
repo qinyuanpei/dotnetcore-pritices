@@ -49,6 +49,8 @@ namespace hello_webapi.Middlewares
 
         private RedisConfiguration _configuration;
 
+        private ConcurrentBag<WebSocket> _socketList = new ConcurrentBag<WebSocket>();
+
 
         /// <summary>
         /// 构造函数
@@ -73,10 +75,14 @@ namespace hello_webapi.Middlewares
             }
 
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            _socketList.Add(webSocket);
             while (webSocket.State == WebSocketState.Open)
             {
                 var message = _messageQueue.Pull("barrage",TimeSpan.FromMilliseconds(2));
-                await SendMessage(webSocket,message);
+                foreach(var socket in _socketList)
+                {
+                    await SendMessage(socket,message);
+                }
             }
 
             await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", default(CancellationToken));

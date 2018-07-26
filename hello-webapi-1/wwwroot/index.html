@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="moment.min.js"></script>
+    <script src="barrage.js"></script>
+    <title>WebSocket实时弹幕</title>
+</head>
+
+<body>
+    <div id="app">
+        <canvas id="canvasBarrage" class="canvas-barrage"></canvas>
+        <video id="videoBarrage" width="640" height="480" src="./video.mp4" controls></video>
+    </div>
+</body>
+<script>
+    var vm = new Vue({
+        el: "#app",
+        data: {
+            barrage: null,
+            websocket: null
+        },
+        methods: {
+            initBarrage: function () {
+                var eleCanvas = document.getElementById('canvasBarrage');
+                var eleVideo = document.getElementById('videoBarrage');
+                this.barrage = new CanvasBarrage(eleCanvas, eleVideo, {
+                    data: [{
+                        value: '弹幕1',
+                        time: 1,
+                        color: 'black'
+                    },
+                    {
+                        value: '弹幕2',
+                        time: 1,
+                        color: 'red'
+                    },
+                    {
+                        value: '弹幕3',
+                        time: 1,
+                        color: 'red'
+                    }]
+                });
+                this.openWebSocket();
+            },
+            openWebSocket: function () {
+                var isSupport = 'WebSocket' in window;
+                if (!isSupport) {
+                    var message = self.formatMessage(new Date(), "系统消息", "当前浏览器不支持WebSocket");
+                    console.log(message);
+                    return;
+                }
+
+                this.websocket = new WebSocket("ws://localhost:8002/push");
+                let self = this;
+
+                //链接错误得回调方法
+                this.websocket.onerror = function () {
+                    var message = self.formatMessage(new Date(), "系统消息", "WebSocket连接发生错误");
+                    console.log(message);
+                };
+
+                //连接成功建立的回调方法
+                this.websocket.onopen = function () {
+                    var message = self.formatMessage(new Date(), "系统消息", "WebSocket连接成功");
+                    console.log(message);
+                }
+
+                //接收到消息的回调方法
+                this.websocket.onmessage = function (event) {
+                    var message = event.data;
+                    console.log(message);
+                    var eleVideo = document.getElementById('videoBarrage');
+                    self.barrage.add({
+                        value: message,
+                        time: eleVideo.currentTime
+                    });
+                }
+
+                //连接关闭的回调方法
+                this.websocket.onclose = function () {
+                    var message = self.formatMessage(new Date(), "系统消息", "WebSocket连接关闭");
+                    console.log(message);
+                }
+
+                //监听窗口关闭事件
+                window.onbeforeunload = function () {
+                    if (self.websocket == null) {
+                        reurn;
+                    }
+
+                    self.closeWebSocket();
+                }
+            },
+
+            //关闭WebSocket
+            closeWebSocket: function () {
+                if (this.websocket == null) {
+                    reurn;
+                }
+
+                this.websocket.close();
+            },
+
+            //格式化消息
+            formatMessage: function (sendTime, sender, message) {
+                return moment(sendTime).format("YYYY-MM-DD hh:mm:ss") + " - " + sender + " : " + message;
+            },
+        },
+    });
+
+    vm.initBarrage();
+</script>
+
+</html>
