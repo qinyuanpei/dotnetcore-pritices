@@ -14,12 +14,7 @@
                 "Get"
             ],
             "ServiceName": "Values1",
-            "UseServiceDiscovery": true,
-            "LoadBalancer": "LeastConnection",
-            "AuthenticationOptions": {
-                "AuthenticationProviderKey": "MyTestKey",
-                "AllowedScopes": []
-            }
+            "UseServiceDiscovery": true
         },
         {
             "DownstreamPathTemplate": "/api/values1/{id}",
