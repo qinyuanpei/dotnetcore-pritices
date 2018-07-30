@@ -2,7 +2,7 @@
   "services": [
     {
       "id": "service01",
-      "name": "Values1",
+      "name": "Values01",
       "tags": [
         "primary",
         "dotnet"

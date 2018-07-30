@@ -19,8 +19,8 @@ namespace hello_ocelot
     {
         public Startup(IHostingEnvironment env)
         {
-             var builder = new Microsoft.Extensions.Configuration.ConfigurationBuilder();
-            builder.SetBasePath(env.ContentRootPath)    
+            var builder = new Microsoft.Extensions.Configuration.ConfigurationBuilder();
+            builder.SetBasePath(env.ContentRootPath)
                    //add configuration.json
                    .AddJsonFile("configuration.json", optional: false, reloadOnChange: true)
                    .AddEnvironmentVariables();
@@ -33,6 +33,13 @@ namespace hello_ocelot
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication()
+                .AddJwtBearer("MyTestKey", X =>
+                {
+                    X.Audience = "MyTest";
+                    X.Authority = "MyTest";
+                    X.Challenge = "Bearer";
+                });
             services.AddOcelot(Configuration);
         }
 

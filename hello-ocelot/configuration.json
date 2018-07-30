@@ -10,9 +10,16 @@
                 }
             ],
             "UpstreamPathTemplate": "/values1",
-            "UpstreamHttpMethod": [ "Get"],
+            "UpstreamHttpMethod": [
+                "Get"
+            ],
             "ServiceName": "Values1",
-            "UseServiceDiscovery": true
+            "UseServiceDiscovery": true,
+            "LoadBalancer": "LeastConnection",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "MyTestKey",
+                "AllowedScopes": []
+            }
         },
         {
             "DownstreamPathTemplate": "/api/values1/{id}",
@@ -24,7 +31,9 @@
                 }
             ],
             "UpstreamPathTemplate": "/values1/{id}",
-            "UpstreamHttpMethod": [ "Get"]
+            "UpstreamHttpMethod": [
+                "Get"
+            ]
         },
         {
             "DownstreamPathTemplate": "/api/files/upload",
@@ -36,8 +45,10 @@
                 }
             ],
             "UpstreamPathTemplate": "/files/upload",
-            "UpstreamHttpMethod": [ "Post"],
-            "ServiceName": "Files",
+            "UpstreamHttpMethod": [
+                "Post"
+            ],
+            "ServiceName": "UploadFiles",
             "UseServiceDiscovery": true
         },
         {
@@ -50,7 +61,11 @@
                 }
             ],
             "UpstreamPathTemplate": "/files/download",
-            "UpstreamHttpMethod": [ "Get"]
+            "UpstreamHttpMethod": [
+                "Get"
+            ],
+            "ServiceName": "DownloadFiles",
+            "UseServiceDiscovery": true
         },
         {
             "DownstreamPathTemplate": "/api/student",
@@ -63,7 +78,10 @@
                 }
             ],
             "UpstreamPathTemplate": "/student",
-            "UpstreamHttpMethod": [ "Get","Post"]
+            "UpstreamHttpMethod": [
+                "Get",
+                "Post"
+            ]
         },
         {
             "DownstreamPathTemplate": "/api/values2",
@@ -76,7 +94,9 @@
                 }
             ],
             "UpstreamPathTemplate": "/values2",
-            "UpstreamHttpMethod": [ "Get"]
+            "UpstreamHttpMethod": [
+                "Get"
+            ]
         }
     ],
     "GlobalConfiguration": {
