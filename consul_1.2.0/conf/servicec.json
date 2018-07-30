@@ -8,24 +8,7 @@
         "dotnet"
       ],
       "address": "localhost",
-      "port": 8002,
-      "checks": [
-        {
-          "id": "check02",
-          "name": "Health Check for Values1 Service",
-          "http": "https://localhost:5000/health",
-          "tls_skip_verify": false,
-          "method": "POST",
-          "header": {
-            "x-foo": [
-              "bar",
-              "baz"
-            ]
-          },
-          "interval": "10s",
-          "timeout": "1s"
-        }
-      ]
+      "port": 8002
     },
     {
       "id": "service02",
@@ -35,24 +18,7 @@
         "dotnet"
       ],
       "address": "localhost",
-      "port": 8002,
-      "checks": [
-        {
-          "id": "check02",
-          "name": "Health Check for Files Service",
-          "http": "https://localhost:5000/health",
-          "tls_skip_verify": false,
-          "method": "POST",
-          "header": {
-            "x-foo": [
-              "bar",
-              "baz"
-            ]
-          },
-          "interval": "10s",
-          "timeout": "1s"
-        }
-      ]
+      "port": 8002
     }
   ]
 }

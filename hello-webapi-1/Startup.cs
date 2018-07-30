@@ -17,6 +17,8 @@ using System.Net.WebSockets;
 using System.Threading;
 using hello_webapi.Middlewares;
 using hello_webapi.Extenstions;
+using Ocelot.DependencyInjection;
+using Ocelot.Middleware;
 
 namespace hello_webapi
 {
@@ -38,6 +40,8 @@ namespace hello_webapi
                 Logger.AddDebug();
                 Logger.AddConsole();
             });
+
+            services.AddOcelot();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

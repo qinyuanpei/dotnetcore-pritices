@@ -36,9 +36,6 @@ var CanvasBarrage = function (canvas, video, options) {
 	options = options || {};
 	var self = iniselftions(this, options, defaults);
 	var data = self.data
-	if (!data || !data.length) {
-		return;
-	}
 
 	/* 初始化Canvas */
 	var context = canvas.getContext('2d');

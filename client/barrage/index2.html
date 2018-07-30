@@ -99,23 +99,7 @@
         var eleCanvas = document.getElementById('canvasBarrage');
         var eleVideo = document.getElementById('videoBarrage');
 
-        var demoBarrage = new CanvasBarrage(eleCanvas, eleVideo, {
-            data: [{
-                value: '弹幕1',
-                time: 1,
-                color: 'black'
-            },
-            {
-                value: '弹幕2',
-                time: 1,
-                color: 'red'
-            },
-            {
-                value: '弹幕3',
-                time: 1,
-                color: 'red'
-            }]
-        });
+        var demoBarrage = new CanvasBarrage(eleCanvas, eleVideo, {});
 
 
         var isSupport = 'WebSocket' in window;
