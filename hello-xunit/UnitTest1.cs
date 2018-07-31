@@ -1,7 +1,7 @@
 using System;
-using xunit;
-using Micorsoft.AspNetCore.Hosting;
-using Micorsoft.AspNetCore.TestHost;
+using Xunit;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
 using hello_webapi;
 using hello_webapi.Models;
 
